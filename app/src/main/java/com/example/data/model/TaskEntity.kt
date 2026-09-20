@@ -9,16 +9,13 @@ data class TaskEntity(
     val id: Long = 0,
     val title: String,
     val description: String = "",
-    val category: String = "Work", // Work, Study, Health, Personal, Routine
-    val priority: String = "MEDIUM", // HIGH, MEDIUM, LOW
-    val estimatedMinutes: Int = 30,
-    val scheduledTime: String = "", // e.g. "09:00 AM"
+    val category: String = "Work", // Work, Study, Health, Personal
+    val priority: String = "Medium", // High, Medium, Low
+    val time: String = "Today",
     val isCompleted: Boolean = false,
-    val isVerified: Boolean = false,
-    val verificationNotes: String? = null,
-    val verificationScore: Int? = null, // 0 - 100
-    val screenshotUri: String? = null,
-    val calendarSynced: Boolean = false,
-    val createdDate: String, // YYYY-MM-DD
-    val completedAt: Long? = null
+    val isAiVerified: Boolean = false,
+    val aiScore: Int = 0,
+    val aiFeedback: String = "",
+    val createdAt: Long = System.currentTimeMillis(),
+    val scheduledAt: Long = 0L
 )

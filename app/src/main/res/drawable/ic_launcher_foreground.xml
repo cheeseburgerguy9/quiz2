@@ -1,30 +1,29 @@
-<?xml version="1.0" encoding="utf-8"?>
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp"
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <!-- Calendar Card Background -->
+    <!-- Outer rounded clipboard card -->
     <path
-        android:fillColor="#FFFFFF"
-        android:pathData="M34,28 h40 c4.4,0 8,3.6 8,8 v38 c0,4.4 -3.6,8 -8,8 H34 c-4.4,0 -8,-3.6 -8,-8 V36 c0,-4.4 3.6,-8 8,-8 z" />
-    <!-- Calendar Header Stripe -->
+        android:fillColor="#225B42"
+        android:pathData="M38,28h32c4.4,0 8,3.6 8,8v42c0,4.4 -3.6,8 -8,8H38c-4.4,0 -8,-3.6 -8,-8V36c0,-4.4 3.6,-8 8,-8z" />
     <path
-        android:fillColor="#7C4DFF"
-        android:pathData="M34,28 h40 c4.4,0 8,3.6 8,8 v8 H26 v-8 c0,-4.4 3.6,-8 8,-8 z" />
-    <!-- Calendar Pins -->
+        android:fillColor="#153829"
+        android:pathData="M40,32h28c3.3,0 6,2.7 6,6v38c0,3.3 -2.7,6 -6,6H40c-3.3,0 -6,-2.7 -6,-6V38c0,-3.3 2.7,-6 6,-6z" />
+    <!-- Clipboard top clip -->
     <path
-        android:fillColor="#FFD54F"
-        android:pathData="M38,24 h4 v7 h-4 z M66,24 h4 v7 h-4 z" />
-    <!-- Big Checkmark inside calendar -->
+        android:fillColor="#4EE394"
+        android:pathData="M48,25h12c2.2,0 4,1.8 4,4v2H44v-2c0,-2.2 1.8,-4 4,-4z" />
+    <!-- Centered bold checkmark -->
     <path
-        android:fillColor="#651FFF"
-        android:pathData="M48,64 l-9,-9 l3.5,-3.5 l5.5,5.5 l14,-14 l3.5,3.5 z" />
-    <!-- AI Sparkle Star on top right -->
+        android:fillColor="#4EE394"
+        android:pathData="M50.5,62.5L42,54l2.8,-2.8l5.7,5.7l13.5,-13.5l2.8,2.8z" />
+    <!-- AI Sparkle 1 -->
     <path
-        android:fillColor="#FFCA28"
-        android:pathData="M78,25 C78,29 82,30 82,30 C82,30 78,31 78,35 C78,31 74,30 74,30 C74,30 78,29 78,25 Z" />
+        android:fillColor="#FFD166"
+        android:pathData="M73,34c0,2.5 2,4.5 4.5,4.5c-2.5,0 -4.5,2 -4.5,4.5c0,-2.5 -2,-4.5 -4.5,-4.5c2.5,0 4.5,-2 4.5,-4.5z" />
+    <!-- AI Sparkle 2 -->
     <path
-        android:fillColor="#69F0AE"
-        android:pathData="M27,68 C27,70 29,71 29,71 C29,71 27,72 27,74 C27,72 25,71 25,71 C25,71 27,70 27,68 Z" />
+        android:fillColor="#6CB5FF"
+        android:pathData="M33,68c0,2 1.5,3.5 3.5,3.5c-2,0 -3.5,1.5 -3.5,3.5c0,-2 -1.5,-3.5 -3.5,-3.5c2,0 3.5,-1.5 3.5,-3.5z" />
 </vector>

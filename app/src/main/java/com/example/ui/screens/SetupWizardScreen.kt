@@ -1,13 +1,14 @@
 package com.example.ui.screens
 
-import android.net.Uri
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -16,438 +17,403 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.AutoAwesome
-import androidx.compose.material.icons.filled.Bedtime
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.FitnessCenter
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Restaurant
+import androidx.compose.material.icons.filled.CalendarMonth
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.DoneAll
+import androidx.compose.material.icons.filled.FolderSpecial
+import androidx.compose.material.icons.filled.ShowChart
+import androidx.compose.material.icons.filled.PhotoCamera
+import androidx.compose.material.icons.filled.VerifiedUser
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.FilterChip
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Slider
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
+import android.net.Uri
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
-import coil.compose.AsyncImage
-import com.example.data.model.UserProfile
-import com.example.ui.theme.ExpressiveCardShape
-import com.example.ui.theme.GeminiPurple
-import com.example.ui.theme.PillShape
-import com.example.ui.theme.PriorityHighColor
-import com.example.ui.theme.PriorityLowColor
-import com.example.ui.theme.PriorityMediumColor
-import com.example.ui.viewmodel.MainViewModel
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.example.ui.theme.AmberGold
+import com.example.ui.theme.AmberGoldContainer
+import com.example.ui.theme.AsymmetricalCardShape
+import com.example.ui.theme.ForestBackground
+import com.example.ui.theme.ForestSurface
+import com.example.ui.theme.ForestSurfaceBorder
+import com.example.ui.theme.ForestSurfaceCard
+import com.example.ui.theme.MintPrimary
+import com.example.ui.theme.MintPrimaryContainer
+import com.example.ui.theme.MintPrimaryDark
+import com.example.ui.theme.OceanBlue
+import com.example.ui.theme.OceanBlueContainer
+import com.example.ui.theme.TextPrimary
+import com.example.ui.theme.TextSecondary
+import com.example.ui.theme.WizardHeroShape
 
-data class WizardDraftTask(
+data class WizardStep(
+    val stepNumber: Int,
     val title: String,
-    val category: String = "Work",
-    val priority: String = "HIGH",
-    val minutes: Int = 45
+    val subtitle: String,
+    val description: String,
+    val icon: ImageVector,
+    val iconColor: Color,
+    val containerColor: Color,
+    val shapeType: Int // 0: Pill, 1: Asymmetrical, 2: Squircle, 3: WizardHero, 4: Hexagonal-cut
 )
 
 @Composable
-fun SetupWizardScreen(viewModel: MainViewModel, modifier: Modifier = Modifier) {
-    val profile by viewModel.userProfile.collectAsState()
-    val sleep by viewModel.sleepScheduleInput.collectAsState()
-    val meals by viewModel.mealScheduleInput.collectAsState()
-    val extra by viewModel.extraConstraintsInput.collectAsState()
-
-    SetupWizardScreen(
-        profile = profile,
-        initialSleep = sleep,
-        initialMeals = meals,
-        initialExtra = extra,
-        onComplete = { name, age, photo, sleepValue, mealsValue, extraValue, tasks, generate ->
-            viewModel.completeSetupWizard(
-                name, age, photo, sleepValue, mealsValue, extraValue, tasks, generate
-            )
-        },
-        modifier = modifier
-    )
-}
-
-@Composable
-private fun SetupWizardScreen(
-    profile: UserProfile,
-    initialSleep: String,
-    initialMeals: String,
-    initialExtra: String,
-    onComplete: (
-        String, Int?, Uri?, String, String, String, List<WizardDraftTask>, Boolean
-    ) -> Unit,
+fun SetupWizardScreen(
+    onFinish: (userName: String, age: Int, photoUri: Uri?) -> Unit,
+    onSkip: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    var step by remember { mutableIntStateOf(1) }
-    var name by remember { mutableStateOf(profile.name) }
-    var age by remember { mutableStateOf(profile.age?.toString().orEmpty()) }
-    var photoUri by remember { mutableStateOf<Uri?>(null) }
-    var sleep by remember { mutableStateOf(initialSleep) }
-    var meals by remember { mutableStateOf(initialMeals) }
-    var extra by remember { mutableStateOf(initialExtra) }
+    var currentStepIndex by remember { mutableIntStateOf(0) }
+    var enteredName by remember { mutableStateOf("Aswin") }
+    var enteredAge by remember { mutableStateOf("") }
+    var profilePhotoUri by remember { mutableStateOf<Uri?>(null) }
+    val photoPicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { profilePhotoUri = it }
 
-    val tasks = remember { mutableStateListOf<WizardDraftTask>() }
-    var title by remember { mutableStateOf("") }
-    var category by remember { mutableStateOf("Work") }
-    var priority by remember { mutableStateOf("HIGH") }
-    var minutes by remember { mutableIntStateOf(45) }
-
-    val picker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) {
-        photoUri = it
+    val steps = remember {
+        listOf(
+            WizardStep(
+                stepNumber = 1,
+                title = "Welcome to Caitlin Daily",
+                subtitle = "Your AI Daily Tracker",
+                description = "Experience mindful productivity designed with Material You elegance. Harmonize tasks, timetable scheduling, and smart daily agendas in one seamless flow.",
+                icon = Icons.Default.AutoAwesome,
+                iconColor = MintPrimary,
+                containerColor = MintPrimaryContainer,
+                shapeType = 3
+            ),
+            WizardStep(
+                stepNumber = 2,
+                title = "Smart Agendas & Priorities",
+                subtitle = "Categorize What Truly Matters",
+                description = "Organize tasks by Work, Study, Health, and Personal life. Assign High, Medium, or Low priority badges to ensure your focus is always directed on top outcomes.",
+                icon = Icons.Default.FolderSpecial,
+                iconColor = OceanBlue,
+                containerColor = OceanBlueContainer,
+                shapeType = 1
+            ),
+            WizardStep(
+                stepNumber = 3,
+                title = "AI Timetable Optimization",
+                subtitle = "Gemini Powered Chrono-Flow",
+                description = "Synchronize your schedule with Google Calendar and allow Gemini AI to automatically arrange high-priority objectives into your peak cognitive energy slots.",
+                icon = Icons.Default.CalendarMonth,
+                iconColor = AmberGold,
+                containerColor = AmberGoldContainer,
+                shapeType = 2
+            ),
+            WizardStep(
+                stepNumber = 4,
+                title = "AI Task Verification",
+                subtitle = "Authentic Proof & Accountability",
+                description = "Submit completed objectives with notes or photo evidence. Gemini AI reviews your progress, stamps tasks as AI Verified, and awards accountability points.",
+                icon = Icons.Default.VerifiedUser,
+                iconColor = MintPrimary,
+                containerColor = MintPrimaryContainer,
+                shapeType = 1
+            ),
+            WizardStep(
+                stepNumber = 5,
+                title = "Insights & Streaks",
+                subtitle = "Data-Driven Momentum",
+                description = "Visualize weekly focus velocity with responsive graphs, track category breakdown percentages, and sustain your consecutive day streaks.",
+                icon = Icons.Default.ShowChart,
+                iconColor = OceanBlue,
+                containerColor = OceanBlueContainer,
+                shapeType = 3
+            )
+        )
     }
 
-    val categories = listOf("Work", "Study", "Health", "Personal", "Routine")
-    val priorities = listOf("HIGH", "MEDIUM", "LOW")
+    val currentStep = steps[currentStepIndex]
 
-    Surface(modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+    Surface(
+        modifier = modifier.fillMaxSize(),
+        color = ForestBackground
+    ) {
         Column(
-            Modifier.fillMaxSize().padding(horizontal = 22.dp, vertical = 18.dp),
-            verticalArrangement = Arrangement.SpaceBetween
+            modifier = Modifier
+                .fillMaxSize()
+                .statusBarsPadding()
+                .navigationBarsPadding()
+                .padding(horizontal = 24.dp, vertical = 16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Column {
-                Row(
-                    Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    if (step > 1) {
-                        IconButton(onClick = { step-- }) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back")
-                        }
-                    } else Spacer(Modifier.size(48.dp))
-
-                    Surface(shape = PillShape, color = MaterialTheme.colorScheme.primaryContainer) {
-                        Text(
-                            "Step $step of 3",
-                            modifier = Modifier.padding(horizontal = 14.dp, vertical = 7.dp),
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer
-                        )
-                    }
-                    Spacer(Modifier.size(48.dp))
-                }
-
-                Row(
-                    Modifier.fillMaxWidth().padding(top = 10.dp),
-                    horizontalArrangement = Arrangement.spacedBy(7.dp)
-                ) {
-                    (1..3).forEach { i ->
-                        Box(
-                            Modifier.weight(1f).height(4.dp).clip(PillShape).background(
-                                if (i <= step) MaterialTheme.colorScheme.primary
-                                else MaterialTheme.colorScheme.surfaceVariant
-                            )
-                        )
-                    }
-                }
-            }
-
-            AnimatedContent(
-                targetState = step,
-                transitionSpec = { fadeIn() togetherWith fadeOut() },
-                modifier = Modifier.weight(1f).fillMaxWidth(),
-                label = "setup_steps"
-            ) { current ->
-                Column(
-                    Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(vertical = 18.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    when (current) {
-                        1 -> {
-                            Text("Welcome to Caitlin Daily", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.ExtraBold)
-                            Text(
-                                "Everything is local by default. No Google account or cloud account is required.",
-                                style = MaterialTheme.typography.bodyLarge,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-
-                            Card(
-                                shape = ExpressiveCardShape,
-                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh)
-                            ) {
-                                Column(Modifier.fillMaxWidth().padding(18.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
-                                    Row(verticalAlignment = Alignment.CenterVertically) {
-                                        if (photoUri != null) {
-                                            AsyncImage(
-                                                model = photoUri,
-                                                contentDescription = "Selected profile photo",
-                                                modifier = Modifier.size(64.dp).clip(CircleShape)
-                                            )
-                                        } else {
-                                            Box(
-                                                Modifier.size(64.dp).background(MaterialTheme.colorScheme.primaryContainer, CircleShape),
-                                                contentAlignment = Alignment.Center
-                                            ) {
-                                                Icon(Icons.Default.Person, null, tint = MaterialTheme.colorScheme.onPrimaryContainer)
-                                            }
-                                        }
-                                        Spacer(Modifier.width(12.dp))
-                                        Column {
-                                            Text("Offline profile", fontWeight = FontWeight.Bold)
-                                            Text(
-                                                "Stored only on this device",
-                                                style = MaterialTheme.typography.bodySmall,
-                                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                                            )
-                                        }
-                                    }
-
-                                    OutlinedTextField(
-                                        value = name,
-                                        onValueChange = { name = it },
-                                        label = { Text("Name") },
-                                        singleLine = true,
-                                        modifier = Modifier.fillMaxWidth(),
-                                        shape = RoundedCornerShape(18.dp)
-                                    )
-
-                                    OutlinedTextField(
-                                        value = age,
-                                        onValueChange = { value ->
-                                            if (value.all(Char::isDigit) && value.length <= 3) age = value
-                                        },
-                                        label = { Text("Age (optional)") },
-                                        singleLine = true,
-                                        modifier = Modifier.fillMaxWidth(),
-                                        shape = RoundedCornerShape(18.dp)
-                                    )
-
-                                    OutlinedButton(
-                                        onClick = { picker.launch("image/*") },
-                                        shape = PillShape,
-                                        modifier = Modifier.fillMaxWidth()
-                                    ) {
-                                        Text(if (photoUri == null) "Choose profile photo" else "Change profile photo")
-                                    }
-
-                                    Surface(
-                                        shape = RoundedCornerShape(16.dp),
-                                        color = GeminiPurple.copy(alpha = 0.10f)
-                                    ) {
-                                        Row(Modifier.padding(13.dp), verticalAlignment = Alignment.CenterVertically) {
-                                            Icon(Icons.Default.AutoAwesome, null, tint = GeminiPurple)
-                                            Spacer(Modifier.width(10.dp))
-                                            Text(
-                                                "Gemini is optional. You will add your own API key later in Settings; this app ships with no API key.",
-                                                style = MaterialTheme.typography.bodySmall
-                                            )
-                                        }
-                                    }
-                                }
-                            }
-                        }
-
-                        2 -> {
-                            Text("Your daily rhythm", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.ExtraBold)
-                            Text(
-                                "Give Gemini enough context to build realistic schedules. These values remain local.",
-                                style = MaterialTheme.typography.bodyLarge,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-
-                            RoutineField(Icons.Default.Bedtime, "Sleep", sleep) { sleep = it }
-                            RoutineField(Icons.Default.Restaurant, "Meals", meals) { meals = it }
-                            RoutineField(Icons.Default.FitnessCenter, "Other constraints", extra) { extra = it }
-                        }
-
-                        3 -> {
-                            Text("Start with a few tasks", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.ExtraBold)
-                            Text(
-                                "You can always add, edit or delete tasks later.",
-                                style = MaterialTheme.typography.bodyLarge,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-
-                            Card(
-                                shape = ExpressiveCardShape,
-                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh)
-                            ) {
-                                Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                                    OutlinedTextField(
-                                        value = title,
-                                        onValueChange = { title = it },
-                                        label = { Text("Task title") },
-                                        singleLine = true,
-                                        modifier = Modifier.fillMaxWidth()
-                                    )
-
-                                    Text("Category", style = MaterialTheme.typography.labelMedium)
-                                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                                        categories.forEach { value ->
-                                            FilterChip(
-                                                selected = category == value,
-                                                onClick = { category = value },
-                                                label = { Text(value) }
-                                            )
-                                        }
-                                    }
-
-                                    Text("Priority", style = MaterialTheme.typography.labelMedium)
-                                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                                        priorities.forEach { value ->
-                                            FilterChip(
-                                                selected = priority == value,
-                                                onClick = { priority = value },
-                                                label = { Text(value) }
-                                            )
-                                        }
-                                    }
-
-                                    Text("Estimated time: $minutes min", style = MaterialTheme.typography.labelMedium)
-                                    Slider(
-                                        value = minutes.toFloat(),
-                                        onValueChange = { minutes = (it / 5).toInt() * 5 },
-                                        valueRange = 5f..180f,
-                                        steps = 34
-                                    )
-
-                                    Button(
-                                        onClick = {
-                                            if (title.isNotBlank()) {
-                                                tasks += WizardDraftTask(title.trim(), category, priority, minutes)
-                                                title = ""
-                                            }
-                                        },
-                                        shape = PillShape,
-                                        modifier = Modifier.fillMaxWidth()
-                                    ) {
-                                        Icon(Icons.Default.Add, null)
-                                        Spacer(Modifier.width(6.dp))
-                                        Text("Add task")
-                                    }
-                                }
-                            }
-
-                            tasks.forEachIndexed { index, task ->
-                                Card(
-                                    shape = RoundedCornerShape(18.dp),
-                                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh)
-                                ) {
-                                    Row(
-                                        Modifier.fillMaxWidth().padding(14.dp),
-                                        verticalAlignment = Alignment.CenterVertically
-                                    ) {
-                                        val priorityColor = when (task.priority) {
-                                            "HIGH" -> PriorityHighColor
-                                            "MEDIUM" -> PriorityMediumColor
-                                            else -> PriorityLowColor
-                                        }
-                                        Box(
-                                            Modifier.size(10.dp).background(priorityColor, CircleShape)
-                                        )
-                                        Spacer(Modifier.width(10.dp))
-                                        Column(Modifier.weight(1f)) {
-                                            Text(task.title, fontWeight = FontWeight.SemiBold)
-                                            Text("${task.category} • ${task.priority} • ${task.minutes} min", style = MaterialTheme.typography.bodySmall)
-                                        }
-                                        IconButton(onClick = { tasks.removeAt(index) }) {
-                                            Icon(Icons.Default.Delete, "Remove task")
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
+            // Top Bar: Back & Skip button
             Row(
-                Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                if (step < 3) {
-                    Button(
-                        onClick = { step++ },
-                        enabled = if (step == 1) name.isNotBlank() else true,
-                        shape = PillShape,
-                        modifier = Modifier.weight(1f)
+                if (currentStepIndex > 0) {
+                    IconButton(
+                        onClick = { currentStepIndex-- },
+                        modifier = Modifier
+                            .size(44.dp)
+                            .clip(CircleShape)
+                            .background(ForestSurfaceCard)
                     ) {
-                        Text("Continue")
-                        Spacer(Modifier.width(6.dp))
-                        Icon(Icons.AutoMirrored.Filled.ArrowForward, null)
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Back",
+                            tint = TextPrimary
+                        )
                     }
                 } else {
-                    Button(
-                        onClick = {
-                            onComplete(
-                                name.trim(),
-                                age.toIntOrNull(),
-                                photoUri,
-                                sleep,
-                                meals,
-                                extra,
-                                tasks.toList(),
-                                true
+                    Spacer(modifier = Modifier.size(44.dp))
+                }
+
+                // Step count pill
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(50))
+                        .background(ForestSurfaceCard)
+                        .border(1.dp, ForestSurfaceBorder, RoundedCornerShape(50))
+                        .padding(horizontal = 14.dp, vertical = 6.dp)
+                ) {
+                    Text(
+                        text = "Step ${currentStepIndex + 1} of ${steps.size}",
+                        color = MintPrimary,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
+
+                Text(
+                    text = "Skip",
+                    color = TextSecondary,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Medium,
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(50))
+                        .clickable { onSkip() }
+                        .padding(horizontal = 12.dp, vertical = 8.dp)
+                        .testTag("wizard_skip_btn")
+                )
+            }
+
+            Spacer(modifier = Modifier.height(28.dp))
+
+            // Animated Step Content
+            AnimatedContent(
+                targetState = currentStep,
+                transitionSpec = { fadeIn() togetherWith fadeOut() },
+                label = "wizard_step_anim",
+                modifier = Modifier.weight(1f)
+            ) { step ->
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    // Material You Expressive Container with Graphic
+                    val stepShape = when (step.shapeType) {
+                        1 -> AsymmetricalCardShape
+                        2 -> RoundedCornerShape(26.dp)
+                        3 -> WizardHeroShape
+                        else -> RoundedCornerShape(32.dp)
+                    }
+
+                    Box(
+                        modifier = Modifier
+                            .size(140.dp)
+                            .clip(stepShape)
+                            .background(
+                                Brush.linearGradient(
+                                    colors = listOf(
+                                        step.containerColor,
+                                        ForestSurfaceCard
+                                    )
+                                )
                             )
-                        },
-                        enabled = name.isNotBlank(),
-                        shape = PillShape,
-                        modifier = Modifier.weight(1f)
+                            .border(2.dp, step.iconColor.copy(alpha = 0.4f), stepShape),
+                        contentAlignment = Alignment.Center
                     ) {
-                        Icon(Icons.Default.Check, null)
-                        Spacer(Modifier.width(6.dp))
-                        Text("Finish & build my day")
+                        Icon(
+                            imageVector = step.icon,
+                            contentDescription = step.title,
+                            tint = step.iconColor,
+                            modifier = Modifier.size(68.dp)
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(32.dp))
+
+                    Text(
+                        text = step.subtitle.uppercase(),
+                        color = step.iconColor,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 1.5.sp
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Text(
+                        text = step.title,
+                        color = TextPrimary,
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Bold,
+                        textAlign = TextAlign.Center
+                    )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    Text(
+                        text = step.description,
+                        color = TextSecondary,
+                        fontSize = 15.sp,
+                        lineHeight = 22.sp,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.padding(horizontal = 8.dp)
+                    )
+
+                    // Optional interactive name setup on the first or final step
+                    if (step.stepNumber == 1) {
+                        Spacer(modifier = Modifier.height(24.dp))
+                        OutlinedTextField(
+                            value = enteredName,
+                            onValueChange = { enteredName = it },
+                            label = { Text("Your Preferred Name", color = TextSecondary) },
+                            singleLine = true,
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedTextColor = TextPrimary,
+                                unfocusedTextColor = TextPrimary,
+                                focusedBorderColor = MintPrimary,
+                                unfocusedBorderColor = ForestSurfaceBorder,
+                                focusedContainerColor = ForestSurfaceCard,
+                                unfocusedContainerColor = ForestSurfaceCard
+                            ),
+                            shape = RoundedCornerShape(16.dp),
+                            modifier = Modifier
+                                .fillMaxWidth(0.85f)
+                                .testTag("wizard_name_input")
+                        )
+                        Spacer(modifier = Modifier.height(10.dp))
+                        OutlinedTextField(
+                            value = enteredAge,
+                            onValueChange = { if (it.length <= 3 && it.all(Char::isDigit)) enteredAge = it },
+                            label = { Text("Age (Optional)", color = TextSecondary) },
+                            singleLine = true,
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedTextColor = TextPrimary, unfocusedTextColor = TextPrimary,
+                                focusedBorderColor = MintPrimary, unfocusedBorderColor = ForestSurfaceBorder,
+                                focusedContainerColor = ForestSurfaceCard, unfocusedContainerColor = ForestSurfaceCard
+                            ),
+                            shape = RoundedCornerShape(16.dp),
+                            modifier = Modifier.fillMaxWidth(0.85f)
+                        )
+                        Spacer(modifier = Modifier.height(10.dp))
+                        Box(
+                            modifier = Modifier.clip(RoundedCornerShape(50)).background(ForestSurfaceCard)
+                                .border(1.dp, ForestSurfaceBorder, RoundedCornerShape(50))
+                                .clickable { photoPicker.launch("image/*") }
+                                .padding(horizontal = 16.dp, vertical = 10.dp)
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(Icons.Default.PhotoCamera, null, tint = MintPrimary, modifier = Modifier.size(18.dp))
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(if (profilePhotoUri == null) "Add profile photo (Optional)" else "Profile photo selected", color = TextSecondary, fontSize = 13.sp)
+                            }
+                        }
                     }
                 }
             }
-        }
-    }
-}
 
-@Composable
-private fun RoutineField(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    title: String,
-    value: String,
-    onValueChange: (String) -> Unit
-) {
-    Card(
-        shape = ExpressiveCardShape,
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh)
-    ) {
-        Row(Modifier.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-            Icon(icon, null, tint = MaterialTheme.colorScheme.primary)
-            Spacer(Modifier.width(10.dp))
-            OutlinedTextField(
-                value = value,
-                onValueChange = onValueChange,
-                label = { Text(title) },
-                modifier = Modifier.weight(1f),
-                minLines = 2,
-                shape = RoundedCornerShape(16.dp)
-            )
+            // Material You Dynamic Indicator Dots / Expanded Pills
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(bottom = 24.dp)
+            ) {
+                steps.forEachIndexed { index, _ ->
+                    val isSelected = index == currentStepIndex
+                    val pillWidth by animateDpAsState(
+                        targetValue = if (isSelected) 32.dp else 10.dp,
+                        animationSpec = spring(),
+                        label = "indicator_pill_width"
+                    )
+                    Box(
+                        modifier = Modifier
+                            .height(10.dp)
+                            .width(pillWidth)
+                            .clip(RoundedCornerShape(50))
+                            .background(
+                                if (isSelected) MintPrimary else ForestSurfaceBorder
+                            )
+                    )
+                }
+            }
+
+            // Next / Get Started Action Button
+            Button(
+                onClick = {
+                    if (currentStepIndex < steps.size - 1) {
+                        currentStepIndex++
+                    } else {
+                        onFinish(enteredName, enteredAge.toIntOrNull() ?: 0, profilePhotoUri)
+                    }
+                },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MintPrimary,
+                    contentColor = MintPrimaryDark
+                ),
+                shape = RoundedCornerShape(50),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp)
+                    .testTag("wizard_action_btn")
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        text = if (currentStepIndex == steps.size - 1) "Get Started" else "Next",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Icon(
+                        imageVector = if (currentStepIndex == steps.size - 1) Icons.Default.CheckCircle else Icons.AutoMirrored.Filled.ArrowForward,
+                        contentDescription = null,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+            }
         }
     }
 }

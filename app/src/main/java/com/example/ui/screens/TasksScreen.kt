@@ -1,8 +1,8 @@
 package com.example.ui.screens
 
-import androidx.compose.foundation.BorderStroke
-import coil.compose.AsyncImage
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -22,531 +23,726 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ArrowDownward
+import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.CalendarMonth
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Clear
-import androidx.compose.material.icons.filled.Cloud
-import androidx.compose.material.icons.filled.HealthAndSafety
-import androidx.compose.material.icons.filled.NightsStay
+import androidx.compose.material.icons.filled.CalendarToday
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.Circle
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.GridView
+import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.filled.School
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Work
-import androidx.compose.material.icons.filled.WbSunny
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.FilterChip
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.example.ui.components.AddTaskDialog
+import androidx.compose.ui.unit.sp
+import com.example.data.model.TaskEntity
+import com.example.ui.components.HeaderTimeArtifact
 import com.example.ui.components.TaskItemCard
-import com.example.ui.theme.ExpressiveCardShape
-import com.example.ui.theme.ExpressiveButtonShape
-import com.example.ui.theme.PillShape
-import com.example.ui.theme.PriorityHighColor
-import com.example.ui.theme.PriorityLowColor
-import com.example.ui.theme.PriorityMediumColor
-import com.example.ui.viewmodel.MainViewModel
-import java.io.File
-import java.util.Calendar
+import com.example.ui.theme.AmberGold
+import com.example.ui.theme.AmberGoldBorder
+import com.example.ui.theme.AmberGoldContainer
+import com.example.ui.theme.CoralRed
+import com.example.ui.theme.ForestBackground
+import com.example.ui.theme.ForestSurfaceBorder
+import com.example.ui.theme.ForestSurfaceCard
+import com.example.ui.theme.MintPrimary
+import com.example.ui.theme.MintPrimaryContainer
+import com.example.ui.theme.MintPrimaryDark
+import com.example.ui.theme.OceanBlue
+import com.example.ui.theme.OceanBlueBorder
+import com.example.ui.theme.OceanBlueContainer
+import com.example.ui.theme.TextPrimary
+import com.example.ui.theme.TextSecondary
+import com.example.ui.theme.TextTertiary
 
 @Composable
 fun TasksScreen(
-    viewModel: MainViewModel,
+    tasks: List<TaskEntity>,
+    totalCount: Int,
+    completedCount: Int,
+    aiVerifiedCount: Int,
+    searchQuery: String,
+    onSearchQueryChange: (String) -> Unit,
+    selectedCategory: String,
+    onSelectCategory: (String) -> Unit,
+    selectedPriority: String,
+    onSelectPriority: (String) -> Unit,
+    onToggleCompleted: (TaskEntity) -> Unit,
+    onDeleteTask: (TaskEntity) -> Unit,
+    onAddNewTaskClick: () -> Unit,
+    onOpenSetupWizard: () -> Unit,
+    onProfileClick: () -> Unit,
+    userName: String = "Aswin",
     modifier: Modifier = Modifier
 ) {
-    val tasks by viewModel.filteredTasks.collectAsState()
-    val rawTasks by viewModel.rawTasks.collectAsState()
-    val searchQuery by viewModel.searchQuery.collectAsState()
-    val selectedCategory by viewModel.selectedCategoryFilter.collectAsState()
-    val selectedPriority by viewModel.selectedPriorityFilter.collectAsState()
-    val isAiEnabled by viewModel.isAiEnabled.collectAsState()
-    val profile by viewModel.userProfile.collectAsState()
-
-    var showAddDialog by remember { mutableStateOf(false) }
-
-    val totalCount = rawTasks.size
-    val completedCount = rawTasks.count { it.isCompleted }
-    val verifiedCount = rawTasks.count { it.isVerified }
-    val uncompletedCount = rawTasks.count { !it.isCompleted }
-
-    val categories = listOf(
-        "ALL" to Icons.Default.CheckCircle,
-        "Work" to Icons.Default.Work,
-        "Study" to Icons.Default.School,
-        "Health" to Icons.Default.HealthAndSafety,
-        "Personal" to Icons.Default.Person
-    )
-    val priorities = listOf(
-        "ALL" to MaterialTheme.colorScheme.primary,
-        "HIGH" to PriorityHighColor,
-        "MEDIUM" to PriorityMediumColor,
-        "LOW" to PriorityLowColor
-    )
-
-    Scaffold(
+    Surface(
         modifier = modifier.fillMaxSize(),
-        containerColor = MaterialTheme.colorScheme.background,
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = { showAddDialog = true },
-                containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = MaterialTheme.colorScheme.onPrimary,
-                shape = PillShape,
-                modifier = Modifier.testTag("add_task_fab")
+        color = ForestBackground
+    ) {
+        Box(modifier = Modifier.fillMaxSize()) {
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(bottom = 96.dp)
             ) {
-                Row(
-                    modifier = Modifier.padding(horizontal = 20.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(Icons.Default.Add, contentDescription = "Add Task")
-                    Spacer(Modifier.width(8.dp))
-                    Text("New Task", fontWeight = FontWeight.Bold)
-                }
-            }
-        }
-    ) { innerPadding ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding),
-            contentPadding = PaddingValues(horizontal = 20.dp, vertical = 12.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            item {
-                HeaderHero(
-                    name = profile.name,
-                    photoPath = profile.photoPath,
-                    isAiEnabled = isAiEnabled
-                )
-            }
+                // 1. Top Header with Time of the Day Background Artifact
+                item {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(130.dp)
+                    ) {
+                        // Background Artifact (tinted with Material You colors based on time of day)
+                        HeaderTimeArtifact(modifier = Modifier.fillMaxSize())
 
-            item {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp)
-                ) {
-                    MetricMiniCard(
-                        title = "Tasks",
-                        value = "$totalCount",
-                        icon = Icons.Default.CheckCircle,
-                        accent = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.weight(1f)
-                    )
-                    MetricMiniCard(
-                        title = "Completed",
-                        value = "$completedCount",
-                        icon = Icons.Default.CalendarMonth,
-                        accent = MaterialTheme.colorScheme.secondary,
-                        modifier = Modifier.weight(1f)
-                    )
-                    MetricMiniCard(
-                        title = "AI Verified",
-                        value = "$verifiedCount",
-                        icon = Icons.Default.AutoAwesome,
-                        accent = MaterialTheme.colorScheme.tertiary,
-                        modifier = Modifier.weight(1f)
-                    )
-                }
-            }
+                        // Top Header Row
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .statusBarsPadding()
+                                .padding(horizontal = 20.dp, vertical = 12.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column {
+                                Text(
+                                    text = "Caitlin Daily",
+                                    color = TextPrimary,
+                                    fontSize = 28.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    letterSpacing = (-0.5).sp
+                                )
+                                Spacer(modifier = Modifier.height(2.dp))
+                                Text(
+                                    text = "Your AI Daily Tracker",
+                                    color = TextSecondary,
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.Normal
+                                )
+                            }
 
-            item {
-                OutlinedTextField(
-                    value = searchQuery,
-                    onValueChange = viewModel::onSearchQueryChange,
-                    placeholder = { Text("Search tasks...") },
-                    leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
-                    trailingIcon = {
-                        if (searchQuery.isNotEmpty()) {
-                            IconButton(onClick = { viewModel.onSearchQueryChange("") }) {
-                                Icon(Icons.Default.Clear, contentDescription = "Clear search")
+                            // Profile Pill
+                            Row(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(50))
+                                    .background(ForestSurfaceCard)
+                                    .border(1.dp, ForestSurfaceBorder, RoundedCornerShape(50))
+                                    .clickable { onProfileClick() }
+                                    .padding(horizontal = 10.dp, vertical = 6.dp)
+                                    .testTag("header_profile_pill"),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(28.dp)
+                                        .clip(CircleShape)
+                                        .background(MintPrimary),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        text = userName.firstOrNull()?.uppercase() ?: "A",
+                                        color = MintPrimaryDark,
+                                        fontSize = 14.sp,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = userName,
+                                    color = TextPrimary,
+                                    fontSize = 13.sp,
+                                    fontWeight = FontWeight.Medium
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Icon(
+                                    imageVector = Icons.Default.KeyboardArrowDown,
+                                    contentDescription = "Menu",
+                                    tint = TextSecondary,
+                                    modifier = Modifier.size(18.dp)
+                                )
                             }
                         }
-                    },
-                    shape = PillShape,
-                    singleLine = true,
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.58f),
-                        unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.58f),
-                        focusedBorderColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.55f),
-                        unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.28f)
-                    ),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .testTag("task_search_field")
-                )
-            }
+                    }
+                }
 
-            item {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .horizontalScroll(rememberScrollState()),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    categories.forEach { (cat, icon) ->
-                        FilterChip(
-                            selected = selectedCategory == cat,
-                            onClick = { viewModel.onCategoryFilterChange(cat) },
-                            label = { Text(if (cat == "ALL") "All" else cat) },
-                            leadingIcon = { Icon(icon, contentDescription = null, modifier = Modifier.size(18.dp)) },
-                            shape = PillShape
+                // 2. Metric Summary Cards (Tasks, Completed, AI Verified)
+                item {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 20.dp),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        // Card 1: Tasks
+                        MetricCard(
+                            count = totalCount,
+                            label = "Tasks",
+                            icon = Icons.Default.Check,
+                            iconColor = MintPrimary,
+                            containerColor = MintPrimaryContainer,
+                            borderColor = MintPrimary.copy(alpha = 0.35f),
+                            modifier = Modifier.weight(1f)
+                        )
+
+                        // Card 2: Completed
+                        MetricCard(
+                            count = completedCount,
+                            label = "Completed",
+                            icon = Icons.Default.CalendarToday,
+                            iconColor = OceanBlue,
+                            containerColor = OceanBlueContainer,
+                            borderColor = OceanBlueBorder,
+                            modifier = Modifier.weight(1f)
+                        )
+
+                        // Card 3: AI Verified
+                        MetricCard(
+                            count = aiVerifiedCount,
+                            label = "AI Verified",
+                            icon = Icons.Default.AutoAwesome,
+                            iconColor = AmberGold,
+                            containerColor = AmberGoldContainer,
+                            borderColor = AmberGoldBorder,
+                            modifier = Modifier.weight(1f)
                         )
                     }
                 }
-            }
 
-            item {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .horizontalScroll(rememberScrollState()),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        "Priority:",
-                        style = MaterialTheme.typography.labelLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    priorities.forEach { (prio, accent) ->
-                        FilterChip(
-                            selected = selectedPriority == prio,
-                            onClick = { viewModel.onPriorityFilterChange(prio) },
-                            label = { Text(if (prio == "ALL") "All" else prio.lowercase().replaceFirstChar { it.uppercase() }) },
+                // 3. Search Bar
+                item {
+                    Spacer(modifier = Modifier.height(18.dp))
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 20.dp)
+                    ) {
+                        OutlinedTextField(
+                            value = searchQuery,
+                            onValueChange = onSearchQueryChange,
+                            placeholder = { Text("Search tasks...", color = TextTertiary) },
                             leadingIcon = {
-                                Box(
-                                    Modifier
-                                        .size(9.dp)
-                                        .background(accent, CircleShape)
+                                Icon(
+                                    imageVector = Icons.Default.Search,
+                                    contentDescription = "Search",
+                                    tint = TextSecondary
                                 )
                             },
-                            shape = PillShape
+                            singleLine = true,
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedTextColor = TextPrimary,
+                                unfocusedTextColor = TextPrimary,
+                                focusedBorderColor = MintPrimary,
+                                unfocusedBorderColor = ForestSurfaceBorder,
+                                focusedContainerColor = ForestSurfaceCard,
+                                unfocusedContainerColor = ForestSurfaceCard
+                            ),
+                            shape = RoundedCornerShape(50),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .testTag("search_tasks_input")
                         )
                     }
                 }
-            }
 
-            item {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Column {
+                // 4. Category Filter Chips
+                item {
+                    Spacer(modifier = Modifier.height(16.dp))
+                    val categories = listOf(
+                        Triple("All", Icons.Default.GridView, "All"),
+                        Triple("Work", Icons.Default.Work, "Work"),
+                        Triple("Study", Icons.Default.School, "Study"),
+                        Triple("Health", Icons.Default.Favorite, "Health"),
+                        Triple("Personal", Icons.Default.Person, "Personal")
+                    )
+
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .horizontalScroll(rememberScrollState())
+                            .padding(horizontal = 20.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        categories.forEach { (catName, icon, key) ->
+                            val isSelected = selectedCategory == key
+                            Box(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(50))
+                                    .background(if (isSelected) MintPrimary else ForestSurfaceCard)
+                                    .border(
+                                        1.dp,
+                                        if (isSelected) MintPrimary else ForestSurfaceBorder,
+                                        RoundedCornerShape(50)
+                                    )
+                                    .clickable { onSelectCategory(key) }
+                                    .padding(horizontal = 14.dp, vertical = 9.dp)
+                                    .testTag("category_chip_$key"),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(
+                                        imageVector = icon,
+                                        contentDescription = null,
+                                        tint = if (isSelected) MintPrimaryDark else TextSecondary,
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(6.dp))
+                                    Text(
+                                        text = catName,
+                                        color = if (isSelected) MintPrimaryDark else TextSecondary,
+                                        fontSize = 13.sp,
+                                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // 5. Priority Filter Row
+                item {
+                    Spacer(modifier = Modifier.height(14.dp))
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .horizontalScroll(rememberScrollState())
+                            .padding(horizontal = 20.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
                         Text(
-                            "Today's Agenda (${tasks.size})",
-                            style = MaterialTheme.typography.titleLarge,
+                            text = "Priority:",
+                            color = TextSecondary,
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Medium
+                        )
+
+                        // All Priority
+                        PriorityChip(
+                            label = "All",
+                            icon = Icons.AutoMirrored.Filled.TrendingUp,
+                            iconColor = if (selectedPriority == "All") MintPrimaryDark else MintPrimary,
+                            isSelected = selectedPriority == "All",
+                            onClick = { onSelectPriority("All") }
+                        )
+
+                        // High Priority
+                        PriorityChip(
+                            label = "High",
+                            icon = Icons.Default.ArrowUpward,
+                            iconColor = CoralRed,
+                            isSelected = selectedPriority == "High",
+                            onClick = { onSelectPriority("High") }
+                        )
+
+                        // Medium Priority
+                        PriorityChip(
+                            label = "Medium",
+                            icon = Icons.Default.Remove,
+                            iconColor = AmberGold,
+                            isSelected = selectedPriority == "Medium",
+                            onClick = { onSelectPriority("Medium") }
+                        )
+
+                        // Low Priority
+                        PriorityChip(
+                            label = "Low",
+                            icon = Icons.Default.Circle,
+                            iconColor = OceanBlue,
+                            isSelected = selectedPriority == "Low",
+                            onClick = { onSelectPriority("Low") }
+                        )
+                    }
+                }
+
+                // 6. Today's Agenda Section Header
+                item {
+                    Spacer(modifier = Modifier.height(24.dp))
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 20.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Today's Agenda (${tasks.size})",
+                            color = TextPrimary,
+                            fontSize = 20.sp,
                             fontWeight = FontWeight.Bold
                         )
-                        if (uncompletedCount > 0) {
-                            Text(
-                                "$uncompletedCount task${if (uncompletedCount == 1) "" else "s"} still open",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+
+                        // Today Dropdown
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(50))
+                                .background(ForestSurfaceCard)
+                                .border(1.dp, ForestSurfaceBorder, RoundedCornerShape(50))
+                                .padding(horizontal = 12.dp, vertical = 6.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(
+                                    imageVector = Icons.Default.CalendarMonth,
+                                    contentDescription = null,
+                                    tint = TextSecondary,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Text(
+                                    text = "Today",
+                                    color = TextPrimary,
+                                    fontSize = 13.sp,
+                                    fontWeight = FontWeight.Medium
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Icon(
+                                    imageVector = Icons.Default.KeyboardArrowDown,
+                                    contentDescription = null,
+                                    tint = TextSecondary,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                            }
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(14.dp))
+                }
+
+                // 7. Tasks List or Empty State Card (Exact Match to Screenshot!)
+                if (tasks.isEmpty()) {
+                    item {
+                        EmptyAgendaCard(
+                            onAddTask = onAddNewTaskClick,
+                            onOpenSetupWizard = onOpenSetupWizard
+                        )
+                    }
+                } else {
+                    items(tasks, key = { it.id }) { task ->
+                        Box(modifier = Modifier.padding(horizontal = 20.dp, vertical = 6.dp)) {
+                            TaskItemCard(
+                                task = task,
+                                onToggleCompleted = { onToggleCompleted(task) },
+                                onDelete = { onDeleteTask(task) }
                             )
                         }
                     }
-                    Surface(
-                        shape = PillShape,
-                        color = MaterialTheme.colorScheme.surfaceContainerHighest,
-                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.16f))
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(horizontal = 14.dp, vertical = 9.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Icon(Icons.Default.CalendarMonth, null, Modifier.size(18.dp))
-                            Spacer(Modifier.width(7.dp))
-                            Text("Today", style = MaterialTheme.typography.labelLarge)
-                        }
-                    }
                 }
             }
 
-            if (tasks.isEmpty()) {
-                item {
-                    EmptyTasksView(
-                        onAddTask = { showAddDialog = true },
-                        onRunSetup = viewModel::restartSetupWizard
+            // Extended Floating Action Button at Bottom Right ("+ New Task")
+            FloatingActionButton(
+                onClick = onAddNewTaskClick,
+                containerColor = MintPrimary,
+                contentColor = MintPrimaryDark,
+                shape = RoundedCornerShape(50),
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(end = 20.dp, bottom = 20.dp)
+                    .testTag("fab_new_task")
+            ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Add,
+                        contentDescription = "New Task",
+                        modifier = Modifier.size(20.dp)
                     )
-                }
-            } else {
-                items(tasks, key = { it.id }) { task ->
-                    TaskItemCard(
-                        task = task,
-                        onToggleCompleted = { viewModel.toggleTaskCompletion(task) },
-                        onAddToCalendar = { viewModel.addTaskToCalendar(task) },
-                        onVerifyScreenshot = { viewModel.prepareTaskForVerification(task) },
-                        onDelete = { viewModel.deleteTask(task) }
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(
+                        text = "New Task",
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold
                     )
                 }
             }
-
-            item { Spacer(Modifier.height(92.dp)) }
         }
-    }
-
-    if (showAddDialog) {
-        AddTaskDialog(
-            onDismiss = { showAddDialog = false },
-            onConfirm = { title, desc, cat, prio, est, time ->
-                viewModel.addTask(title, desc, cat, prio, est, time)
-                showAddDialog = false
-            }
-        )
     }
 }
 
 @Composable
-private fun HeaderHero(
-    name: String,
-    photoPath: String?,
-    isAiEnabled: Boolean
+private fun MetricCard(
+    count: Int,
+    label: String,
+    icon: ImageVector,
+    iconColor: Color,
+    containerColor: Color,
+    borderColor: Color,
+    modifier: Modifier = Modifier
 ) {
-    val hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
-    val (greeting, icon) = when (hour) {
-        in 5..11 -> "Good morning" to Icons.Default.WbSunny
-        in 12..16 -> "Good afternoon" to Icons.Default.Cloud
-        in 17..20 -> "Good evening" to Icons.Default.WbSunny
-        else -> "Good night" to Icons.Default.NightsStay
-    }
-    val initial = name.trim().firstOrNull()?.uppercaseChar()?.toString() ?: "C"
-
     Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(150.dp)
+        modifier = modifier
+            .clip(RoundedCornerShape(22.dp))
+            .background(containerColor)
+            .border(1.dp, borderColor, RoundedCornerShape(22.dp))
+            .padding(14.dp)
     ) {
-        // Small time-of-day artifact: deliberately subtle and tinted by Material You colors.
-        Box(
-            modifier = Modifier
-                .align(Alignment.TopEnd)
-                .size(155.dp)
-                .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.22f), CircleShape)
-                .alpha(0.8f)
-        )
-        Box(
-            modifier = Modifier
-                .align(Alignment.TopEnd)
-                .padding(top = 16.dp, end = 28.dp)
-                .size(74.dp)
-                .background(MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.30f), CircleShape),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                icon,
-                contentDescription = greeting,
-                tint = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.75f),
-                modifier = Modifier.size(40.dp)
-            )
-        }
-
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .align(Alignment.BottomStart)
-        ) {
+        Column {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        "Caitlin Daily",
-                        style = MaterialTheme.typography.headlineLarge,
-                        fontWeight = FontWeight.ExtraBold
-                    )
-                    Text(
-                        if (isAiEnabled) "$greeting, ${name.ifBlank { "there" }} • AI Daily Tracker" else "$greeting, ${name.ifBlank { "there" }}",
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-
-                Surface(
-                    shape = PillShape,
-                    color = MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.88f),
-                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.14f))
+                Box(
+                    modifier = Modifier
+                        .size(26.dp)
+                        .clip(CircleShape)
+                        .background(iconColor.copy(alpha = 0.2f)),
+                    contentAlignment = Alignment.Center
                 ) {
-                    Row(
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 7.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Surface(
-                            modifier = Modifier.size(38.dp),
-                            shape = CircleShape,
-                            color = MaterialTheme.colorScheme.primaryContainer
-                        ) {
-                            if (!photoPath.isNullOrBlank()) {
-                                AsyncImage(
-                                    model = File(photoPath),
-                                    contentDescription = "Profile photo",
-                                    modifier = Modifier.size(38.dp)
-                                )
-                            } else {
-                                Box(contentAlignment = Alignment.Center) {
-                                    Text(
-                                        initial,
-                                        color = MaterialTheme.colorScheme.onPrimaryContainer,
-                                        fontWeight = FontWeight.Bold
-                                    )
-                                }
-                            }
-                        }
-                        Spacer(Modifier.width(8.dp))
-                        Text(
-                            name.ifBlank { "User" },
-                            style = MaterialTheme.typography.labelLarge,
-                            fontWeight = FontWeight.SemiBold,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                    }
+                    Icon(
+                        imageVector = icon,
+                        contentDescription = null,
+                        tint = iconColor,
+                        modifier = Modifier.size(16.dp)
+                    )
                 }
-            }
-        }
-    }
-}
-
-@Composable
-private fun MetricMiniCard(
-    title: String,
-    value: String,
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    accent: Color,
-    modifier: Modifier = Modifier
-) {
-    Card(
-        modifier = modifier.height(126.dp),
-        shape = ExpressiveCardShape,
-        colors = CardDefaults.cardColors(
-            containerColor = accent.copy(alpha = 0.14f)
-        ),
-        border = BorderStroke(1.dp, accent.copy(alpha = 0.18f))
-    ) {
-        Column(
-            modifier = Modifier.padding(15.dp),
-            verticalArrangement = Arrangement.SpaceBetween
-        ) {
-            Surface(
-                shape = PillShape,
-                color = accent.copy(alpha = 0.18f)
-            ) {
                 Icon(
-                    icon,
+                    imageVector = Icons.Default.ChevronRight,
                     contentDescription = null,
-                    tint = accent,
-                    modifier = Modifier.padding(7.dp).size(20.dp)
+                    tint = iconColor.copy(alpha = 0.7f),
+                    modifier = Modifier.size(16.dp)
                 )
             }
-            Spacer(Modifier.height(5.dp))
+
+            Spacer(modifier = Modifier.height(14.dp))
+
             Text(
-                value,
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.ExtraBold
+                text = count.toString(),
+                color = TextPrimary,
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold
             )
+            Spacer(modifier = Modifier.height(2.dp))
             Text(
-                title,
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                text = label,
+                color = TextSecondary,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Medium
             )
         }
     }
 }
 
 @Composable
-private fun EmptyTasksView(
-    onAddTask: () -> Unit,
-    onRunSetup: () -> Unit
+private fun PriorityChip(
+    label: String,
+    icon: ImageVector,
+    iconColor: Color,
+    isSelected: Boolean,
+    onClick: () -> Unit
 ) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(30.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
-        ),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.12f))
+    Box(
+        modifier = Modifier
+            .clip(RoundedCornerShape(50))
+            .background(if (isSelected) MintPrimary else ForestSurfaceCard)
+            .border(
+                1.dp,
+                if (isSelected) MintPrimary else ForestSurfaceBorder,
+                RoundedCornerShape(50)
+            )
+            .clickable { onClick() }
+            .padding(horizontal = 14.dp, vertical = 7.dp)
+            .testTag("priority_chip_$label"),
+        contentAlignment = Alignment.Center
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = if (isSelected) MintPrimaryDark else iconColor,
+                modifier = Modifier.size(14.dp)
+            )
+            Spacer(modifier = Modifier.width(6.dp))
+            Text(
+                text = label,
+                color = if (isSelected) MintPrimaryDark else TextSecondary,
+                fontSize = 12.sp,
+                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
+            )
+        }
+    }
+}
+
+/**
+ * Empty Agenda Card matching the screenshot perfectly:
+ * - Illustration: Rounded clipboard with checkmark and sparkles
+ * - Headline: "Your day is clear!"
+ * - Description: "Add tasks to organize your schedule, sync them with Google Calendar, and let Gemini AI optimize your timetable."
+ * - Buttons: "+ Add Task" and "✨ Setup Wizard"
+ */
+@Composable
+private fun EmptyAgendaCard(
+    onAddTask: () -> Unit,
+    onOpenSetupWizard: () -> Unit
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 20.dp)
+            .clip(RoundedCornerShape(28.dp))
+            .background(ForestSurfaceCard)
+            .border(1.dp, ForestSurfaceBorder, RoundedCornerShape(28.dp))
+            .padding(28.dp),
+        contentAlignment = Alignment.Center
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 24.dp, vertical = 30.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.fillMaxWidth()
         ) {
-            Surface(
-                modifier = Modifier.size(92.dp),
-                shape = RoundedCornerShape(32.dp),
-                color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.72f)
+            // Stylized Clipboard Graphic with Checkmark & Stars matching screenshot
+            Box(
+                modifier = Modifier.size(120.dp),
+                contentAlignment = Alignment.Center
             ) {
-                Box(contentAlignment = Alignment.Center) {
+                // Organic background ambient glow
+                Box(
+                    modifier = Modifier
+                        .size(110.dp)
+                        .clip(CircleShape)
+                        .background(MintPrimary.copy(alpha = 0.08f))
+                )
+                // Outer clipboard card
+                Box(
+                    modifier = Modifier
+                        .size(width = 68.dp, height = 86.dp)
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(MintPrimaryContainer)
+                        .border(2.dp, MintPrimary.copy(alpha = 0.5f), RoundedCornerShape(16.dp)),
+                    contentAlignment = Alignment.Center
+                ) {
                     Icon(
-                        Icons.Default.CheckCircle,
+                        imageVector = Icons.Default.Check,
                         contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                        modifier = Modifier.size(52.dp)
+                        tint = MintPrimary,
+                        modifier = Modifier.size(36.dp)
                     )
                 }
+                // Ambient sparkles
+                Icon(
+                    imageVector = Icons.Default.AutoAwesome,
+                    contentDescription = null,
+                    tint = MintPrimary,
+                    modifier = Modifier
+                        .size(18.dp)
+                        .align(Alignment.TopEnd)
+                )
+                Icon(
+                    imageVector = Icons.Default.AutoAwesome,
+                    contentDescription = null,
+                    tint = OceanBlue,
+                    modifier = Modifier
+                        .size(14.dp)
+                        .align(Alignment.BottomStart)
+                )
             }
-            Spacer(Modifier.height(18.dp))
+
+            Spacer(modifier = Modifier.height(20.dp))
+
             Text(
-                "Your day is clear!",
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.ExtraBold
+                text = "Your day is clear!",
+                color = TextPrimary,
+                fontSize = 22.sp,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center
             )
-            Spacer(Modifier.height(8.dp))
+
+            Spacer(modifier = Modifier.height(10.dp))
+
             Text(
-                "Add tasks to organize your schedule, sync them with Calendar, and let Gemini optimize your timetable.",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                text = "Add tasks to organize your schedule, sync them with Google Calendar, and let Gemini AI optimize your timetable.",
+                color = TextSecondary,
+                fontSize = 14.sp,
+                lineHeight = 20.sp,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(horizontal = 8.dp)
             )
-            Spacer(Modifier.height(20.dp))
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Action Buttons: + Add Task & ✨ Setup Wizard
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                androidx.compose.material3.Button(
+                // + Add Task Button
+                Button(
                     onClick = onAddTask,
-                    shape = ExpressiveButtonShape,
-                    modifier = Modifier.weight(1f)
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MintPrimary,
+                        contentColor = MintPrimaryDark
+                    ),
+                    shape = RoundedCornerShape(50),
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(48.dp)
+                        .testTag("empty_state_add_task_btn")
                 ) {
-                    Icon(Icons.Default.Add, null, Modifier.size(20.dp))
-                    Spacer(Modifier.width(7.dp))
-                    Text("Add Task")
+                    Icon(
+                        imageVector = Icons.Default.Add,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(
+                        text = "Add Task",
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold
+                    )
                 }
-                androidx.compose.material3.OutlinedButton(
-                    onClick = onRunSetup,
-                    shape = ExpressiveButtonShape,
-                    modifier = Modifier.weight(1f)
+
+                // ✨ Setup Wizard Button
+                OutlinedButton(
+                    onClick = onOpenSetupWizard,
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        containerColor = Color.Transparent,
+                        contentColor = TextPrimary
+                    ),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, ForestSurfaceBorder),
+                    shape = RoundedCornerShape(50),
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(48.dp)
+                        .testTag("empty_state_setup_wizard_btn")
                 ) {
-                    Icon(Icons.Default.AutoAwesome, null, Modifier.size(19.dp))
-                    Spacer(Modifier.width(7.dp))
-                    Text("Setup Wizard")
+                    Icon(
+                        imageVector = Icons.Default.AutoAwesome,
+                        contentDescription = null,
+                        tint = MintPrimary,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(
+                        text = "Setup Wizard",
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.SemiBold
+                    )
                 }
             }
         }

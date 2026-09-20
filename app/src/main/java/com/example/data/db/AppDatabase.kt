@@ -4,34 +4,26 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
+import com.example.data.model.StudySessionEntity
 import com.example.data.model.TaskEntity
-import com.example.data.model.TimetableSlot
 
-@Database(
-    entities = [TaskEntity::class, TimetableSlot::class],
-    version = 1,
-    exportSchema = false
-)
+@Database(entities = [TaskEntity::class, StudySessionEntity::class], version = 2, exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun taskDao(): TaskDao
-    abstract fun timetableDao(): TimetableDao
-
+    abstract fun studySessionDao(): StudySessionDao
     companion object {
-        @Volatile
-        private var INSTANCE: AppDatabase? = null
-
-        fun getDatabase(context: Context): AppDatabase {
-            return INSTANCE ?: synchronized(this) {
-                val instance = Room.databaseBuilder(
-                    context.applicationContext,
-                    AppDatabase::class.java,
-                    "caitlindaily_database"
-                )
-                    .fallbackToDestructiveMigration()
-                    .build()
-                INSTANCE = instance
-                instance
+        private val MIGRATION_1_2 = object : Migration(1, 2) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE tasks ADD COLUMN scheduledAt INTEGER NOT NULL DEFAULT 0")
+                db.execSQL("CREATE TABLE IF NOT EXISTS study_sessions (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, dateMillis INTEGER NOT NULL, appName TEXT NOT NULL, minutes INTEGER NOT NULL, sourceNote TEXT NOT NULL, createdAt INTEGER NOT NULL)")
             }
+        }
+        @Volatile private var INSTANCE: AppDatabase? = null
+        fun getInstance(context: Context): AppDatabase = INSTANCE ?: synchronized(this) {
+            INSTANCE ?: Room.databaseBuilder(context.applicationContext, AppDatabase::class.java, "caitlin_daily.db")
+                .addMigrations(MIGRATION_1_2).build().also { INSTANCE = it }
         }
     }
 }

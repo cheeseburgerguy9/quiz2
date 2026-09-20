@@ -1,9 +1,8 @@
 package com.example
 
-import androidx.compose.material3.Text
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onRoot
-import com.example.ui.theme.CaitlinDailyTheme
+import com.example.ui.theme.MyApplicationTheme
 import com.github.takahirom.roborazzi.RobolectricDeviceQualifiers
 import com.github.takahirom.roborazzi.captureRoboImage
 import org.junit.Rule
@@ -18,16 +17,33 @@ import org.robolectric.annotation.GraphicsMode
 @Config(qualifiers = RobolectricDeviceQualifiers.Pixel8, sdk = [36])
 class GreetingScreenshotTest {
 
-    @get:Rule val composeTestRule = createComposeRule()
+  @get:Rule val composeTestRule = createComposeRule()
 
-    @Test
-    fun app_theme_screenshot() {
-        composeTestRule.setContent {
-            CaitlinDailyTheme {
-                Text("Caitlin Daily Material You Preview")
-            }
-        }
-
-        composeTestRule.onRoot().captureRoboImage(filePath = "src/test/screenshots/greeting.png")
+  @Test
+  fun greeting_screenshot() {
+    composeTestRule.setContent {
+      MyApplicationTheme {
+        com.example.ui.screens.TasksScreen(
+          tasks = emptyList(),
+          totalCount = 0,
+          completedCount = 0,
+          aiVerifiedCount = 0,
+          searchQuery = "",
+          onSearchQueryChange = {},
+          selectedCategory = "All",
+          onSelectCategory = {},
+          selectedPriority = "All",
+          onSelectPriority = {},
+          onToggleCompleted = {},
+          onDeleteTask = {},
+          onAddNewTaskClick = {},
+          onOpenSetupWizard = {},
+          onProfileClick = {},
+          userName = "Aswin"
+        )
+      }
     }
+
+    composeTestRule.onRoot().captureRoboImage(filePath = "src/test/screenshots/greeting.png")
+  }
 }
