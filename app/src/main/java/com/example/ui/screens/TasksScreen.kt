@@ -417,3 +417,100 @@ fun TasksScreen(
 
 
 }
+
+@Composable
+private fun MetricMiniCard(
+    title: String,
+    value: String,
+    color: Color,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier,
+        shape = ExpressiveCardShape,
+        colors = CardDefaults.cardColors(
+            containerColor = color.copy(alpha = 0.10f)
+        ),
+        border = BorderStroke(1.dp, color.copy(alpha = 0.22f))
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 12.dp, vertical = 12.dp),
+            horizontalAlignment = Alignment.Start
+        ) {
+            Text(
+                text = value,
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.ExtraBold,
+                color = color
+            )
+            Spacer(Modifier.height(2.dp))
+            Text(
+                text = title,
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
+    }
+}
+
+@Composable
+private fun EmptyTasksView(
+    onAddTask: () -> Unit,
+    onRunSetup: () -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = ExpressiveCardShape,
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainer
+        )
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Surface(
+                shape = CircleShape,
+                color = MaterialTheme.colorScheme.primaryContainer
+            ) {
+                Icon(
+                    Icons.Default.CheckCircle,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                    modifier = Modifier
+                        .padding(14.dp)
+                        .size(30.dp)
+                )
+            }
+            Spacer(Modifier.height(14.dp))
+            Text(
+                text = "No tasks yet",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold
+            )
+            Spacer(Modifier.height(4.dp))
+            Text(
+                text = "Add a task or run setup to start building today's agenda.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Spacer(Modifier.height(16.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                Button(onClick = onAddTask) {
+                    Icon(Icons.Default.Add, contentDescription = null)
+                    Spacer(Modifier.width(6.dp))
+                    Text("Add task")
+                }
+                OutlinedButton(onClick = onRunSetup) {
+                    Text("Run setup")
+                }
+            }
+        }
+    }
+}
