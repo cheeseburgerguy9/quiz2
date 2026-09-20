@@ -1,0 +1,9 @@
+{
+  "name": "Caitlin Daily",
+  "description": "Offline-first Android 16/17 Material You daily planner with optional user-supplied Gemini AI, Google Calendar sync, screenshot verification, local profiles, and offline backup/restore.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "OPTIONAL_USER_SUPPLIED_GEMINI_API",
+    "OFFLINE_DATA_BACKUP_RESTORE"
+  ]
+}
