@@ -26,8 +26,8 @@ import java.util.concurrent.atomic.AtomicInteger
 
 object GeminiService {
     private const val TAG = "GeminiService"
-    const val MODEL_NAME = "gemini-2.5-flash"
-    const val AI_PLAN = "Gemini Developer / Pro Tier"
+    const val MODEL_NAME = "gemini-3.6-flash"
+    const val AI_PLAN = "Gemini 3.6 Flash"
     private const val BASE_URL = "https://generativelanguage.googleapis.com/v1beta/models/$MODEL_NAME:generateContent"
 
     // Dynamic session usage counters

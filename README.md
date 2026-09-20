@@ -67,3 +67,10 @@ Application ID:
 ```text
 com.aistudio.plancraft.vxyzt
 ```
+
+
+## UI refresh
+
+The main task dashboard now follows the supplied Android 16/17 Material You-inspired reference: expressive rounded cards, pill filters, a compact profile pill, floating New Task action, rounded navigation surface, and a subtle time-of-day header illustration. Dynamic Material 3 colors remain enabled, so the palette follows the device wallpaper/theme on Android 12+.
+
+The header artifact changes with local device time (morning sun, afternoon cloud, evening glow, night moon) and remains intentionally low-contrast so it does not compete with task content.
