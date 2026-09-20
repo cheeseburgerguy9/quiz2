@@ -1,18 +1,12 @@
-# Caitlin Daily feature integration
+# Build / cleanup notes
 
-The existing UI/components were kept in place; the changes are additive to the existing design.
-
-- Offline account creation: name, optional age, optional profile photo.
-- Google/Firebase sign-in/auth dependencies removed.
-- Gemini is BYO-key only. No API key is bundled. The local key is encrypted with Android Keystore.
-- Gemini model endpoint: `gemini-3.6-flash`.
-- Settings: Verify key, Get API key, short setup guide, clear key.
-- Gemini-dependent Schedule/AI Verify/Insights tabs are disabled when no verified key is configured.
-- AI task verification requires both written evidence and a screenshot.
-- High-priority tasks cannot be manually marked complete; only successful AI verification can mark them complete.
-- Study Time Beta accepts a screenshot plus an app name and asks Gemini to read the visible duration.
-- Insights combines task names/completion state and study sessions into a Gemini-generated report and suggestions.
-- Task creation now has Android calendar date/time pickers and an optional direct Google Calendar insertion with runtime permission.
-- Settings backup/restore exports account data, settings, tasks, study sessions, timetable and app timestamp. The Gemini API key is deliberately excluded.
-- Room database migrated from version 1 to 2 for scheduled task timestamps and study sessions.
-- GitHub Actions uses Gradle 9.3.1 + JDK 17, matching AGP 9.1.1 requirements.
+- Removed the AI Studio generated Secrets, Google Services, Firebase, Google Sign-In, and KSP build plugins/dependencies.
+- Room uses KAPT instead of KSP to avoid the IntelliJ/AWT KSP crash seen in GitHub Actions.
+- Debug builds use the standard Android debug signing configuration; no repository `debug.keystore` is required.
+- GitHub Actions installs Gradle 9.3.1 directly and runs `assembleDebug`.
+- AGP 9.1.1, Gradle 9.3.1, JDK 17 and Kotlin 2.2.10 are intentionally aligned.
+- Gemini uses the user-provided `gemini-3.6-flash` API model; no API key is bundled.
+- API keys are stored with Android Keystore encryption and excluded from explicit backups.
+- Removed generated demo account values, demo timetable entries, greeting sample screen, and AI Studio project metadata.
+- High-priority task completion is guarded both in the UI and ViewModel; screenshot + written evidence are required for AI verification.
+- Explicit in-app backup includes account/app settings, tasks, study records, timetable, app creation date, and profile photo data.

@@ -1,7 +1,0 @@
-{
-  "name": "Caitlin Daily",
-  "description": "Your AI Daily Tracker with smart task agendas, timetable optimizer, and productivity insights.",
-  "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
-}
-
