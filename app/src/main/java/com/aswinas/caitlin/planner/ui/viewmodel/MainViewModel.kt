@@ -251,8 +251,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     prefs.edit().putLong("last_yesterday_reminder_day", currentDayNumber).apply()
                     NotificationHelper.sendYesterdayReminderNotification(
                         context = application,
-                        count = yesterdayIncomplete.size,
-                        firstTaskTitle = yesterdayIncomplete.first().title
+                        incompleteCount = yesterdayIncomplete.size,
+                        sampleTitle = yesterdayIncomplete.first().title
                     )
                 }
             }
